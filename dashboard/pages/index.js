@@ -14,8 +14,8 @@ import {
   HiOutlineLightBulb,
   HiOutlineChip,
 } from 'react-icons/hi'
-import ScoreGauge from '@/components/ScoreGauge'
-import ProgressTimeline from '@/components/ProgressTimeline'
+import ScoreGauge from '../components/ScoreGauge'
+import ProgressTimeline from '../components/ProgressTimeline'
 
 const DURATIONS = [
   { label: '1 hour', value: 1 },
