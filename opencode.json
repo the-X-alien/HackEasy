@@ -1,0 +1,49 @@
+{
+  "agents": {
+    "orchestrator": {
+      "model": "claude-3.5-sonnet",
+      "instructions": "You manage the entire hackathon pipeline. Decide which specialist agent to invoke, when to run judge simulation, and when to submit. You enforce the HOP methodology and ensure rubric-optimized output.",
+      "tools": ["run_agent", "call_mcp", "submit_to_github", "deploy_to_vercel"]
+    },
+    "idea_agent": {
+      "model": "claude-3.5-sonnet",
+      "instructions": "Generate winning hackathon ideas using the HOP methodology and our research paper formula. Apply Category x Constraint x Problem x Solution x Demo x Angle. Never suggest generic ChatGPT wrappers or blockchain-for-blockchain's-sake.",
+      "tools": ["search_trends", "evaluate_feasibility", "call_mcp"]
+    },
+    "code_agent": {
+      "model": "claude-3.5-sonnet",
+      "instructions": "Write production-ready, full-stack code that deploys to Vercel. Use Next.js + Tailwind + Prisma + SQLite for web apps. Prioritize a single polished demo path over broad feature sets. Every function must have a unit test.",
+      "tools": ["write_file", "run_tests", "deploy_preview", "call_mcp"]
+    },
+    "pitch_agent": {
+      "model": "gpt-4o-mini",
+      "instructions": "Generate a 3-minute pitch script, 10-slide deck, and Q&A prep. Align every slide to the judging rubric. Include real statistics, a mermaid diagram, a screenshot, and market sizing.",
+      "tools": ["generate_slides", "synthesize_demo_script", "call_mcp"]
+    },
+    "video_agent": {
+      "model": "claude-3-haiku",
+      "instructions": "Create a storyboard and script for a cinematic product demo video. Use Remotion for rendering. Apply auto-zoom and blur effects. Output a Video.tsx component that renders to MP4.",
+      "tools": ["render_video", "call_mcp"]
+    }
+  },
+  "skills": {
+    "hop_methodology": "skills/time_aware_scoping.md",
+    "rubric_analyzer": "skills/judging_criteria_parser.py",
+    "deploy_to_vercel": "skills/vercel_deploy.sh"
+  },
+  "mcps": [
+    {
+      "name": "hackeasy-mcp",
+      "command": "python",
+      "args": ["hackeasy_mcp_server.py"]
+    }
+  ],
+  "models": {
+    "default": "claude-3.5-sonnet",
+    "fallbacks": ["gemini-1.5-pro", "gpt-4o-mini", "deepseek-coder-v2"],
+    "provider": {
+      "base_url": "https://ai.hackclub.com/v1",
+      "api_key": ""
+    }
+  }
+}

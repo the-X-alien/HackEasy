@@ -1,0 +1,19 @@
+{
+  "name": "hackeasy",
+  "version": "1.0.0",
+  "description": "AI-powered hackathon automation platform – win any hackathon without writing code",
+  "main": "hackeasy_mcp_server.py",
+  "scripts": {
+    "start": "python hackeasy_mcp_server.py",
+    "orchestrate": "python orchestrator.py",
+    "dashboard": "cd dashboard && npm run dev",
+    "build-dashboard": "cd dashboard && npm run build",
+    "deploy": "vercel --prod --yes",
+    "test": "cd tests && python -m pytest",
+    "lint": "cd dashboard && npm run lint",
+    "docker-build": "docker build -t hackeasy .",
+    "docker-run": "docker run -p 3000:3000 -p 5000:5000 hackeasy"
+  },
+  "keywords": ["hackathon", "ai", "automation", "opencode", "mcp"],
+  "license": "MIT"
+}
