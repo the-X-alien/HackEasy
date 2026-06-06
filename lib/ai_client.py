@@ -7,11 +7,11 @@ from .cache import HackEasyCache
 
 class AIClient:
     def __init__(self, cache: Optional[HackEasyCache] = None):
-        self.base_url = os.getenv("AI_API_BASE", "https://ai.hackclub.com/v1")
+        self.base_url = os.getenv("AI_API_BASE", "https://ai.hackclub.com/proxy/v1")
         self.api_key = os.getenv("AI_API_KEY", "")
         self.fallbacks = json.loads(os.getenv(
             "AI_MODEL_FALLBACKS",
-            '["claude-3.5-sonnet","gemini-1.5-pro","gpt-4o-mini","mistral-nemo","deepseek-coder-v2","llama-3-8b"]'
+            '["openai/gpt-4o-mini","mistralai/mistral-nemo","meta-llama/llama-3.1-8b-instruct","qwen/qwen-2.5-7b-instruct"]'
         ))
         self.cache = cache or HackEasyCache()
         self.client = httpx.Client(timeout=120.0)

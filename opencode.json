@@ -1,17 +1,17 @@
 {
   "agents": {
     "orchestrator": {
-      "model": "claude-3.5-sonnet",
+      "model": "openai/gpt-4o-mini",
       "instructions": "You manage the entire hackathon pipeline. Decide which specialist agent to invoke, when to run judge simulation, and when to submit. You enforce the HOP methodology and ensure rubric-optimized output.",
       "tools": ["run_agent", "call_mcp", "submit_to_github", "deploy_to_vercel"]
     },
     "idea_agent": {
-      "model": "claude-3.5-sonnet",
+      "model": "openai/gpt-4o-mini",
       "instructions": "Generate winning hackathon ideas using the HOP methodology and our research paper formula. Apply Category x Constraint x Problem x Solution x Demo x Angle. Never suggest generic ChatGPT wrappers or blockchain-for-blockchain's-sake.",
       "tools": ["search_trends", "evaluate_feasibility", "call_mcp"]
     },
     "code_agent": {
-      "model": "claude-3.5-sonnet",
+      "model": "openai/gpt-4o-mini",
       "instructions": "Write production-ready, full-stack code that deploys to Vercel. Use Next.js + Tailwind + Prisma + SQLite for web apps. Prioritize a single polished demo path over broad feature sets. Every function must have a unit test.",
       "tools": ["write_file", "run_tests", "deploy_preview", "call_mcp"]
     },
@@ -39,11 +39,11 @@
     }
   ],
   "models": {
-    "default": "claude-3.5-sonnet",
-    "fallbacks": ["gemini-1.5-pro", "gpt-4o-mini", "deepseek-coder-v2"],
+    "default": "openai/gpt-4o-mini",
+    "fallbacks": ["mistralai/mistral-nemo", "meta-llama/llama-3.1-8b-instruct", "qwen/qwen-2.5-7b-instruct"],
     "provider": {
-      "base_url": "https://ai.hackclub.com/v1",
-      "api_key": ""
+      "base_url": "https://ai.hackclub.com/proxy/v1",
+      "api_key": "${AI_API_KEY}"
     }
   }
 }
