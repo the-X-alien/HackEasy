@@ -1,0 +1,12 @@
+{
+  "name": "hackeasy-mcp-server",
+  "version": "1.0.0",
+  "description": "HackEasy MCP Server — SSE transport for remote agent connections",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  }
+}
