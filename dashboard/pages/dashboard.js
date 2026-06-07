@@ -739,14 +739,19 @@ export default function IdeaGenerator() {
   const generateAll = async () => {
     setLoading(prev => ({ ...prev, ['all']: true }))
 
-    for (const cat of CATEGORIES) {
-      if (!ideas[cat.id] || ideas[cat.id].length === 0) {
-        await generateIdeas(cat.id)
-      }
+    try {
+      await Promise.all(CATEGORIES.map(cat => {
+        if (!ideas[cat.id] || ideas[cat.id].length === 0) {
+          return generateIdeas(cat.id)
+        }
+        return Promise.resolve()
+      }))
+      toast.success('Generated ideas for all categories')
+    } catch (err) {
+      toast.error('Some generations failed')
     }
 
     setLoading(prev => ({ ...prev, ['all']: false }))
-    toast.success('Generated ideas for all categories')
   }
 
   const saveIdea = (idea) => {
