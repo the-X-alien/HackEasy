@@ -34,8 +34,7 @@
   "mcps": [
     {
       "name": "hackeasy-mcp",
-      "command": "python",
-      "args": ["hackeasy_mcp_server.py"]
+      "url": "https://talented-cat-production-d297.up.railway.app/mcp"
     }
   ],
   "models": {

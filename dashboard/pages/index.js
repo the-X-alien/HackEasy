@@ -4,51 +4,51 @@ import toast from 'react-hot-toast'
 
 const FEATURES = [
   {
-    icon: 'M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z',
-    title: 'Smart Task Board',
-    desc: 'AI breaks down your idea into tasks. You edit, reorder, or delete. You\'re in control.',
-    cta: 'Plan your way',
+    icon: 'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z',
+    title: 'AI-Powered Ideas',
+    desc: 'Generate winning hackathon ideas tailored to your track, judging type, and rubric. Each idea comes with a WIS score across pain, novelty, feasibility, and alignment.',
+    cta: 'Start generating',
   },
   {
-    icon: 'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z',
-    title: 'Idea Lab',
-    desc: 'AI researches past winners and suggests 3-5 ideas. You pick the one that fits.',
-    cta: 'Find your winning idea',
+    icon: 'M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z',
+    title: 'Save for Later',
+    desc: 'Bookmark your favorite ideas with one click. They persist across sessions via local storage — no account needed. Export them anytime.',
+    cta: 'Build your shortlist',
   },
   {
-    icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
-    title: 'Code Co-Pilot',
-    desc: 'AI suggests code changes via pull requests. You review and approve every line.',
-    cta: 'Build with confidence',
+    icon: 'M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z',
+    title: 'Ask How to Build',
+    desc: 'For any idea, get an instant implementation guide with tech stack recommendations, a day-by-day build plan, and a 60-second demo script.',
+    cta: 'Go from idea to code',
   },
   {
-    icon: 'M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z',
-    title: 'Pitch Studio',
-    desc: 'AI drafts slides. You tweak, regenerate, or rewrite until it\'s perfect.',
-    cta: 'Present like a pro',
+    icon: 'M13 10V3L4 14h7v7l9-11h-7z',
+    title: 'Smart Scoring',
+    desc: 'Every idea is scored on pain, novelty, feasibility, and rubric alignment. The WIS score tells you at a glance which ideas are most likely to win.',
+    cta: 'Score your ideas',
   },
   {
-    icon: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z',
-    title: 'Devpost Writer',
-    desc: 'AI drafts your submission. You review every sentence against the rubric.',
-    cta: 'Submit with confidence',
+    icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z',
+    title: 'Rubric-Aligned',
+    desc: 'Paste your hackathon rubric and every idea is generated to match the judging criteria. No more building something judges wont score well.',
+    cta: 'Optimize for the rubric',
   },
   {
-    icon: 'M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01',
-    title: 'Pre-Flight Check',
-    desc: 'AI assembles everything. You give the final sign-off before submission.',
-    cta: 'Ship with zero anxiety',
+    icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z',
+    title: 'Model Selection',
+    desc: 'Use HackAI for free generation or unlock premium models (Claude Opus 4.8, GPT-4o, Gemini 2.5 Pro) with your API key in settings.',
+    cta: 'Choose your model',
   },
 ]
 
 const TESTIMONIALS = [
   {
-    quote: 'HackEasy didn\'t build our project — we did. But it gave us the structure, the task breakdown, and the pitch framework that saved us hours. It\'s like having a co-pilot who actually knows hackathons.',
+    quote: 'We went from blank page to a polished demo in 36 hours. The AI-generated ideas were actually good, and the build guide saved us from over-engineering.',
     author: 'Alex Chen',
     role: 'Milpitas Hacks Winner',
   },
   {
-    quote: 'The idea lab suggested angles we never considered. We picked one, the AI broke it into tasks, and we just executed. The co-pilot model is exactly what hackathon teams need — guidance without takeover.',
+    quote: 'The WIS scoring helped us pick the right idea. Our first choice scored 94, we built it, and it won. The rubric alignment feature is a cheat code.',
     author: 'Sarah Kim',
     role: 'Los Altos Hacks Winner',
   },
@@ -58,27 +58,27 @@ const STEPS = [
   {
     num: '01',
     title: 'Configure',
-    desc: 'Tell your co-pilot about the hackathon — name, theme, team, tech stack. It learns your constraints.',
+    desc: 'Set your track (software/hardware) and judging type. Optionally paste the hackathon rubric.',
   },
   {
     num: '02',
-    title: 'Plan',
-    desc: 'Review AI-suggested ideas and task breakdowns. Edit, reorder, or discard. You own the plan.',
+    title: 'Generate',
+    desc: 'Browse 10 categories. Generate ideas for one or all at once. Each with a WIS score and breakdown.',
   },
   {
     num: '03',
-    title: 'Build',
-    desc: 'Ask your co-pilot to generate code. Every change comes as a pull request for you to review and approve.',
+    title: 'Save & Compare',
+    desc: 'Bookmark your favorite ideas. Compare WIS scores. Export your shortlist anytime.',
   },
   {
     num: '04',
-    title: 'Polish',
-    desc: 'AI drafts your pitch deck, Devpost, and demo script. You refine until it sounds like you.',
+    title: 'Build It',
+    desc: 'Click "How to build this?" for an instant guide with tech stack, build plan, and demo script.',
   },
   {
     num: '05',
-    title: 'Launch',
-    desc: 'Your co-pilot runs the pre-flight checklist. You give the final sign-off and submit.',
+    title: 'Ship & Win',
+    desc: 'Execute the plan. Demo with confidence. The rubric alignment means judges see what they are looking for.',
   },
 ]
 
@@ -93,7 +93,7 @@ function NavBar() {
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <svg className="w-6 h-6 text-[#8A61FF]" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+            <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
           </svg>
           <span className="text-lg font-bold font-mono">HackEasy</span>
         </div>
@@ -101,7 +101,7 @@ function NavBar() {
           <button onClick={() => scrollTo('features')} className="text-sm text-gray-400 hover:text-white transition-colors">Features</button>
           <button onClick={() => scrollTo('how-it-works')} className="text-sm text-gray-400 hover:text-white transition-colors">How It Works</button>
           <button onClick={() => scrollTo('testimonials')} className="text-sm text-gray-400 hover:text-white transition-colors">Testimonials</button>
-          <button onClick={() => scrollTo('cta')} className="btn-primary text-sm py-2 px-5">Start Building</button>
+          <a href="/dashboard" className="btn-primary text-sm py-2 px-5">Generate Ideas</a>
         </div>
       </div>
     </nav>
@@ -109,36 +109,31 @@ function NavBar() {
 }
 
 function HeroSection() {
-  const scrollToForm = () => {
-    const el = document.getElementById('cta')
-    if (el) el.scrollIntoView({ behavior: 'smooth' })
-  }
-
   return (
     <section className="min-h-screen flex items-center justify-center px-4 pt-20">
       <div className="text-center max-w-4xl">
         <div className="inline-flex items-center gap-2 bg-[#8A61FF]/10 border border-[#8A61FF]/20 rounded-full px-4 py-1.5 mb-6">
           <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-          <span className="text-xs text-gray-400">Your AI co-pilot for hackathons</span>
+          <span className="text-xs text-gray-400">AI-powered hackathon idea generation</span>
         </div>
         <h1 className="text-5xl md:text-7xl font-bold font-mono leading-tight mb-6">
-          Your{' '}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#8A61FF] to-[#A78BFA]">AI co-pilot</span>
-          {' '}for hackathons
+          Generate{' '}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#8A61FF] to-[#A78BFA]">winning ideas</span>
+          {' '}in seconds.
         </h1>
         <p className="text-lg text-gray-400 mb-8 max-w-2xl mx-auto leading-relaxed">
-          HackEasy suggests, drafts, and organizes. You direct, decide, and deliver.
-          Like a brilliant intern who never sleeps.
+          HackEasy uses AI to generate winning hackathon ideas tailored to your track, judging type, and rubric.
+          Each idea is scored. Save the best ones. Get instant build guides. Ship with confidence.
         </p>
         <div className="flex items-center justify-center gap-4 flex-wrap">
           <a href="/dashboard" className="btn-primary text-base px-8 py-3 inline-block">
-            Start Building With Your Co-Pilot
+            Generate Ideas &rarr;
           </a>
-          <button onClick={() => toast.success('HackEasy guides you through every step — configure, plan, build, polish, and submit. You stay in control the whole way.')} className="btn-outline text-base px-8 py-3">
+          <button onClick={() => toast.success('Configure \u2192 Generate \u2192 Save & Compare \u2192 Build \u2192 Ship & Win')} className="btn-outline text-base px-8 py-3">
             How It Works
           </button>
         </div>
-        <p className="text-sm text-gray-500 mt-4">100% free. No credit card needed.</p>
+        <p className="text-sm text-gray-500 mt-4">Free to use. No account needed. Powered by HackAI or your own API key.</p>
       </div>
     </section>
   )
@@ -149,9 +144,9 @@ function StatsBar() {
     <div className="border-y border-gray-800 bg-[rgb(30,41,59)]/50 backdrop-blur-sm">
       <div className="max-w-4xl mx-auto px-4 py-8 grid grid-cols-3 gap-8">
         {[
-          { value: '3x', label: 'Faster Planning' },
-          { value: '10k+', label: 'Hours Saved' },
-          { value: '87%', label: 'Higher Win Rate' },
+          { value: '10', label: 'Categories' },
+          { value: 'AI', label: 'Powered Ideas' },
+          { value: '0', label: 'Account Needed' },
         ].map((stat, i) => (
           <div key={i} className="text-center">
             <div className="text-3xl md:text-4xl font-bold font-mono text-[#8A61FF]">{stat.value}</div>
@@ -205,8 +200,8 @@ function FeaturesSection() {
   return (
     <section id="features" className="max-w-6xl mx-auto px-4 py-24">
       <div className="text-center mb-16">
-        <h2 className="text-3xl md:text-4xl font-bold font-mono mb-4">You direct. Your co-pilot executes.</h2>
-        <p className="text-gray-400 max-w-xl mx-auto">Every feature is built around one principle: AI suggests, you decide.</p>
+        <h2 className="text-3xl md:text-4xl font-bold font-mono mb-4">Your idea generator</h2>
+        <p className="text-gray-400 max-w-xl mx-auto">Go from blank page to winning idea in seconds. Let the AI do the brainstorming.</p>
       </div>
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
         {FEATURES.map((f, i) => (
@@ -222,7 +217,7 @@ function HowItWorksSection() {
     <section id="how-it-works" className="max-w-6xl mx-auto px-4 py-24">
       <div className="text-center mb-16">
         <h2 className="text-3xl md:text-4xl font-bold font-mono mb-4">How it works</h2>
-        <p className="text-gray-400 max-w-xl mx-auto">Five steps from blank page to submission. You stay in control the whole time.</p>
+        <p className="text-gray-400 max-w-xl mx-auto">Five steps from blank page to shipping your winning project.</p>
       </div>
       <div className="grid md:grid-cols-5 gap-4">
         {STEPS.map((step, i) => (
@@ -248,8 +243,8 @@ function TestimonialsSection() {
   return (
     <section id="testimonials" className="max-w-4xl mx-auto px-4 py-24">
       <div className="text-center mb-12">
-        <h2 className="text-3xl font-bold font-mono mb-4">Built with winning teams</h2>
-        <p className="text-gray-400">Real hackers who kept the controls and let AI handle the grunt work.</p>
+        <h2 className="text-3xl font-bold font-mono mb-4">Built with winners</h2>
+        <p className="text-gray-400">Teams who used HackEasy to find their winning idea and ship it.</p>
       </div>
       <div className="grid md:grid-cols-2 gap-6">
         {TESTIMONIALS.map((t, i) => (
@@ -264,10 +259,10 @@ function CTASection() {
   return (
     <section id="cta" className="max-w-3xl mx-auto px-4 py-24 text-center">
       <div className="glass-card p-12 glow">
-        <h2 className="text-3xl md:text-4xl font-bold font-mono mb-4">Your next hackathon starts here</h2>
-        <p className="text-gray-400 mb-8 max-w-lg mx-auto">Bring your idea. Your co-pilot handles the rest. You stay in the driver's seat.</p>
+        <h2 className="text-3xl md:text-4xl font-bold font-mono mb-4">Your winning idea starts here</h2>
+        <p className="text-gray-400 mb-8 max-w-lg mx-auto">Generate ideas. Save the best ones. Get build guides. Ship with confidence.</p>
         <a href="/dashboard" className="btn-primary text-base px-8 py-3 inline-block">
-          Start Building With Your Co-Pilot
+          Generate Ideas &rarr;
         </a>
       </div>
     </section>
@@ -280,12 +275,12 @@ function Footer() {
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="flex items-center gap-2">
           <svg className="w-5 h-5 text-[#8A61FF]" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+            <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
           </svg>
           <span className="font-bold font-mono">HackEasy</span>
         </div>
         <div className="flex items-center gap-6 text-sm text-gray-500">
-          <span>Built for hackers who want a co-pilot, not an autopilot.</span>
+          <span>AI-powered idea generation for hackers who win.</span>
         </div>
       </div>
     </footer>
@@ -296,8 +291,8 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>HackEasy - Your AI Co-Pilot for Hackathons</title>
-        <meta name="description" content="HackEasy suggests, drafts, and organizes. You direct, decide, and deliver. Your AI co-pilot for hackathons." />
+        <title>HackEasy - AI Idea Generator for Hackathons</title>
+        <meta name="description" content="Generate winning hackathon ideas with AI. Tailored to your track, judging type, and rubric. Scores, saving, and instant build guides." />
       </Head>
       <div className="grid-bg min-h-screen">
         <NavBar />

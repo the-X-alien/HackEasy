@@ -6,6 +6,8 @@ const {
   ListToolsRequestSchema,
   ListResourcesRequestSchema,
   ReadResourceRequestSchema,
+  PingRequestSchema,
+  InitializedNotificationSchema,
 } = require("@modelcontextprotocol/sdk/types.js");
 const fs = require("fs");
 const path = require("path");
@@ -109,6 +111,19 @@ const TOOL_DEFINITIONS = [
     },
   },
   {
+    name: "create_task",
+    description: "Add a new task to the task list",
+    inputSchema: {
+      type: "object",
+      properties: {
+        name: { type: "string", description: "Task name/title" },
+        time: { type: "string", description: "Estimated time (e.g. 1h, 45m)" },
+        assignee: { type: "string", description: "Optional agent to assign to" },
+      },
+      required: ["name"],
+    },
+  },
+  {
     name: "register_agent",
     description: "Register an agent as connected",
     inputSchema: {
@@ -199,6 +214,8 @@ function createServer() {
     { capabilities: { tools: {}, resources: {} } }
   );
 
+  server.setNotificationHandler(InitializedNotificationSchema, () => {});
+
   server.setRequestHandler(ListResourcesRequestSchema, async () => ({
     resources: [
       { uri: "hackathon://plan", name: "Hackathon Plan", mimeType: "text/markdown" },
@@ -251,8 +268,21 @@ function createServer() {
           break;
         }
 
+        case "create_task": {
+          const { name, time, assignee } = args;
+          if (!name || typeof name !== "string") throw new Error("Task name is required");
+          const maxId = state.tasks.reduce((m, t) => Math.max(m, t.id), 0);
+          const newTask = { id: maxId + 1, name, time: time || "1h", assignee: assignee || null, status: "open", commitHash: null };
+          state.tasks.push(newTask);
+          addLog(state, assignee || "system", `Task #${newTask.id} created: "${name}"`);
+          result = { content: [{ type: "text", text: JSON.stringify(newTask) }] };
+          break;
+        }
+
         case "assign_task": {
           const { task_id, agent_id } = args;
+          if (task_id === undefined) throw new Error("task_id is required");
+          if (!agent_id) throw new Error("agent_id is required");
           const task = state.tasks.find((t) => t.id === task_id);
           if (!task) throw new Error(`Task ${task_id} not found`);
           if (task.assignee !== null) throw new Error(`Task ${task_id} is already assigned to ${task.assignee}`);
@@ -265,6 +295,7 @@ function createServer() {
 
         case "claim_next_task": {
           const { agent_id } = args;
+          if (!agent_id) throw new Error("agent_id is required");
           const nextTask = state.tasks.find((t) => t.assignee === null && t.status === "open");
           if (!nextTask) {
             result = { content: [{ type: "text", text: "null" }] };
@@ -279,6 +310,8 @@ function createServer() {
 
         case "mark_task_done": {
           const { task_id, commit_hash } = args;
+          if (task_id === undefined) throw new Error("task_id is required");
+          if (!commit_hash) throw new Error("commit_hash is required");
           const task = state.tasks.find((t) => t.id === task_id);
           if (!task) throw new Error(`Task ${task_id} not found`);
           task.status = "done";
@@ -290,6 +323,8 @@ function createServer() {
 
         case "register_agent": {
           const { agent_id, agent_type } = args;
+          if (!agent_id) throw new Error("agent_id is required");
+          if (!agent_type) throw new Error("agent_type is required");
           state.agents[agent_id] = { type: agent_type, connectedAt: new Date().toISOString() };
           addLog(state, agent_id, `Agent registered (${agent_type})`);
           result = { content: [{ type: "text", text: `Agent ${agent_id} (${agent_type}) registered.` }] };
@@ -298,6 +333,7 @@ function createServer() {
 
         case "unregister_agent": {
           const { agent_id } = args;
+          if (!agent_id) throw new Error("agent_id is required");
           if (!state.agents[agent_id]) throw new Error(`Agent ${agent_id} not found`);
           delete state.agents[agent_id];
           addLog(state, agent_id, `Agent unregistered`);
@@ -307,6 +343,8 @@ function createServer() {
 
         case "add_log": {
           const { agent_id, message } = args;
+          if (!agent_id) throw new Error("agent_id is required");
+          if (!message) throw new Error("message is required");
           addLog(state, agent_id, message);
           result = { content: [{ type: "text", text: "Log entry added." }] };
           break;
@@ -376,10 +414,49 @@ function createServer() {
 
 // --- HTTP Server with SSE Transport ---
 
+const CORS_ORIGIN = process.env.CORS_ORIGIN || "*";
+
+function json(res, status, data) {
+  const headers = {
+    "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": CORS_ORIGIN,
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  };
+  res.writeHead(status, headers);
+  res.end(JSON.stringify(data));
+}
+
+function parseJSONBody(req) {
+  return new Promise((resolve, reject) => {
+    let body = "";
+    req.on("data", (chunk) => (body += chunk));
+    req.on("end", () => {
+      try {
+        resolve(JSON.parse(body));
+      } catch (e) {
+        reject(new Error("Invalid JSON body"));
+      }
+    });
+    req.on("error", reject);
+  });
+}
+
 const transports = {};
 
 const httpServer = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+  const start = Date.now();
+  const logReq = () => {
+    const ms = Date.now() - start;
+    console.error(`[${new Date().toISOString()}] ${req.method} ${url.pathname} ${res.statusCode} ${ms}ms`);
+  };
+
+  // CORS preflight
+  if (req.method === "OPTIONS") {
+    json(res, 204, "");
+    return;
+  }
 
   if (req.method === "GET" && url.pathname === "/mcp") {
     const transport = new SSEServerTransport("/mcp/message", res);
@@ -389,6 +466,7 @@ const httpServer = http.createServer(async (req, res) => {
     };
     const server = createServer();
     await server.connect(transport);
+    logReq();
     return;
   }
 
@@ -396,20 +474,46 @@ const httpServer = http.createServer(async (req, res) => {
     const sessionId = url.searchParams.get("sessionId");
     const transport = transports[sessionId];
     if (!transport) {
-      res.writeHead(404).end("Session not found");
+      json(res, 404, { error: "Session not found" });
+      logReq();
       return;
     }
     await transport.handlePostMessage(req, res);
+    logReq();
+    return;
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/plan") {
+    try {
+      const data = await parseJSONBody(req);
+      const state = loadState();
+      if (data.plan !== undefined) state.plan = data.plan;
+      if (data.tasks !== undefined) state.tasks = data.tasks;
+      if (data.rubric !== undefined) state.rubric = data.rubric;
+      saveState(state);
+      json(res, 200, { status: "ok" });
+    } catch (e) {
+      json(res, 400, { error: e.message });
+    }
+    logReq();
+    return;
+  }
+
+  if (req.method === "GET" && url.pathname === "/api/state") {
+    const state = loadState();
+    json(res, 200, state);
+    logReq();
     return;
   }
 
   if (req.method === "GET" && url.pathname === "/health") {
-    res.writeHead(200, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ status: "ok", sessions: Object.keys(transports).length }));
+    json(res, 200, { status: "ok", sessions: Object.keys(transports).length });
+    logReq();
     return;
   }
 
-  res.writeHead(404).end("Not found");
+  json(res, 404, { error: "Not found" });
+  logReq();
 });
 
 const PORT = process.env.PORT || 3100;
@@ -419,4 +523,20 @@ httpServer.listen(PORT, () => {
   console.error(`Message endpoint: POST /mcp/message`);
   console.error(`Health: GET /health`);
   console.error(`Port: ${PORT}`);
+});
+
+// Graceful shutdown
+process.on("SIGTERM", () => {
+  console.error("SIGTERM received, shutting down...");
+  for (const t of Object.values(transports)) {
+    try { t.close(); } catch {}
+  }
+  httpServer.close(() => process.exit(0));
+});
+process.on("SIGINT", () => {
+  console.error("SIGINT received, shutting down...");
+  for (const t of Object.values(transports)) {
+    try { t.close(); } catch {}
+  }
+  httpServer.close(() => process.exit(0));
 });
