@@ -60,49 +60,6 @@ function addLog(state, agent, message) {
   state.logs.push({ ts: new Date().toISOString(), agent, message });
 }
 
-const mcpServer = new Server(
-  { name: "hackeasy-mcp", version: "1.0.0" },
-  { capabilities: { tools: {}, resources: {} } }
-);
-
-mcpServer.setRequestHandler(ListResourcesRequestSchema, async () => ({
-  resources: [
-    { uri: "hackathon://plan", name: "Hackathon Plan", mimeType: "text/markdown" },
-    { uri: "hackathon://tasks", name: "Tasks", mimeType: "application/json" },
-    { uri: "hackathon://rubric", name: "Rubric", mimeType: "application/json" },
-    { uri: "hackathon://repo", name: "Repository Info", mimeType: "application/json" },
-    { uri: "hackathon://logs", name: "Activity Logs", mimeType: "application/json" },
-    { uri: "hackathon://slides", name: "Slides", mimeType: "application/json" },
-    { uri: "hackathon://video", name: "Video", mimeType: "application/json" },
-    { uri: "hackathon://devpost", name: "Devpost Draft", mimeType: "application/json" },
-  ],
-}));
-
-mcpServer.setRequestHandler(ReadResourceRequestSchema, async (request) => {
-  const state = loadState();
-  const uri = request.params.uri;
-
-  const resourceMap = {
-    "hackathon://plan": { text: state.plan, mimeType: "text/markdown" },
-    "hackathon://tasks": { text: JSON.stringify(state.tasks, null, 2), mimeType: "application/json" },
-    "hackathon://rubric": { text: JSON.stringify(state.rubric, null, 2), mimeType: "application/json" },
-    "hackathon://repo": { text: JSON.stringify(state.repo, null, 2), mimeType: "application/json" },
-    "hackathon://logs": { text: JSON.stringify(state.logs, null, 2), mimeType: "application/json" },
-    "hackathon://slides": { text: JSON.stringify(state.slides, null, 2), mimeType: "application/json" },
-    "hackathon://video": { text: JSON.stringify(state.video, null, 2), mimeType: "application/json" },
-    "hackathon://devpost": { text: JSON.stringify(state.devpost, null, 2), mimeType: "application/json" },
-  };
-
-  const entry = resourceMap[uri];
-  if (!entry) {
-    throw new Error(`Unknown resource: ${uri}`);
-  }
-
-  return {
-    contents: [{ uri, mimeType: entry.mimeType, text: entry.text }],
-  };
-});
-
 const TOOL_DEFINITIONS = [
   {
     name: "update_plan",
@@ -236,194 +193,186 @@ const TOOL_DEFINITIONS = [
   },
 ];
 
-mcpServer.setRequestHandler(ListToolsRequestSchema, async () => ({
-  tools: TOOL_DEFINITIONS,
-}));
+function createServer() {
+  const server = new Server(
+    { name: "hackeasy-mcp", version: "1.0.0" },
+    { capabilities: { tools: {}, resources: {} } }
+  );
 
-mcpServer.setRequestHandler(CallToolRequestSchema, async (request) => {
-  const state = loadState();
-  const tool = request.params.name;
-  const args = request.params.arguments || {};
+  server.setRequestHandler(ListResourcesRequestSchema, async () => ({
+    resources: [
+      { uri: "hackathon://plan", name: "Hackathon Plan", mimeType: "text/markdown" },
+      { uri: "hackathon://tasks", name: "Tasks", mimeType: "application/json" },
+      { uri: "hackathon://rubric", name: "Rubric", mimeType: "application/json" },
+      { uri: "hackathon://repo", name: "Repository Info", mimeType: "application/json" },
+      { uri: "hackathon://logs", name: "Activity Logs", mimeType: "application/json" },
+      { uri: "hackathon://slides", name: "Slides", mimeType: "application/json" },
+      { uri: "hackathon://video", name: "Video", mimeType: "application/json" },
+      { uri: "hackathon://devpost", name: "Devpost Draft", mimeType: "application/json" },
+    ],
+  }));
 
-  try {
-    let result;
+  server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+    const state = loadState();
+    const uri = request.params.uri;
+    const resourceMap = {
+      "hackathon://plan": { text: state.plan, mimeType: "text/markdown" },
+      "hackathon://tasks": { text: JSON.stringify(state.tasks, null, 2), mimeType: "application/json" },
+      "hackathon://rubric": { text: JSON.stringify(state.rubric, null, 2), mimeType: "application/json" },
+      "hackathon://repo": { text: JSON.stringify(state.repo, null, 2), mimeType: "application/json" },
+      "hackathon://logs": { text: JSON.stringify(state.logs, null, 2), mimeType: "application/json" },
+      "hackathon://slides": { text: JSON.stringify(state.slides, null, 2), mimeType: "application/json" },
+      "hackathon://video": { text: JSON.stringify(state.video, null, 2), mimeType: "application/json" },
+      "hackathon://devpost": { text: JSON.stringify(state.devpost, null, 2), mimeType: "application/json" },
+    };
+    const entry = resourceMap[uri];
+    if (!entry) throw new Error(`Unknown resource: ${uri}`);
+    return { contents: [{ uri, mimeType: entry.mimeType, text: entry.text }] };
+  });
 
-    switch (tool) {
-      case "update_plan": {
-        const { section, content } = args;
-        state.plan = state.plan + `\n\n## ${section}\n\n${content}`;
-        addLog(state, "system", `Plan section "${section}" updated`);
-        result = { content: [{ type: "text", text: `Plan section "${section}" updated.` }] };
-        break;
-      }
+  server.setRequestHandler(ListToolsRequestSchema, async () => ({
+    tools: TOOL_DEFINITIONS,
+  }));
 
-      case "assign_task": {
-        const { task_id, agent_id } = args;
-        const task = state.tasks.find((t) => t.id === task_id);
-        if (!task) {
-          throw new Error(`Task ${task_id} not found`);
-        }
-        if (task.assignee !== null) {
-          throw new Error(`Task ${task_id} is already assigned to ${task.assignee}`);
-        }
-        task.assignee = agent_id;
-        task.status = "in_progress";
-        addLog(state, agent_id, `Assigned to task #${task_id}: "${task.name}"`);
-        result = { content: [{ type: "text", text: `Task #${task_id} assigned to ${agent_id}.` }] };
-        break;
-      }
+  server.setRequestHandler(CallToolRequestSchema, async (request) => {
+    const state = loadState();
+    const tool = request.params.name;
+    const args = request.params.arguments || {};
 
-      case "claim_next_task": {
-        const { agent_id } = args;
-        const nextTask = state.tasks.find((t) => t.assignee === null && t.status === "open");
-        if (!nextTask) {
-          result = { content: [{ type: "text", text: "null" }] };
+    try {
+      let result;
+
+      switch (tool) {
+        case "update_plan": {
+          const { section, content } = args;
+          state.plan = state.plan + `\n\n## ${section}\n\n${content}`;
+          addLog(state, "system", `Plan section "${section}" updated`);
+          result = { content: [{ type: "text", text: `Plan section "${section}" updated.` }] };
           break;
         }
-        nextTask.assignee = agent_id;
-        nextTask.status = "in_progress";
-        addLog(state, agent_id, `Claimed next task #${nextTask.id}: "${nextTask.name}"`);
-        result = { content: [{ type: "text", text: JSON.stringify(nextTask) }] };
-        break;
-      }
 
-      case "mark_task_done": {
-        const { task_id, commit_hash } = args;
-        const task = state.tasks.find((t) => t.id === task_id);
-        if (!task) {
-          throw new Error(`Task ${task_id} not found`);
+        case "assign_task": {
+          const { task_id, agent_id } = args;
+          const task = state.tasks.find((t) => t.id === task_id);
+          if (!task) throw new Error(`Task ${task_id} not found`);
+          if (task.assignee !== null) throw new Error(`Task ${task_id} is already assigned to ${task.assignee}`);
+          task.assignee = agent_id;
+          task.status = "in_progress";
+          addLog(state, agent_id, `Assigned to task #${task_id}: "${task.name}"`);
+          result = { content: [{ type: "text", text: `Task #${task_id} assigned to ${agent_id}.` }] };
+          break;
         }
-        task.status = "done";
-        task.commitHash = commit_hash;
-        addLog(state, task.assignee || "unknown", `Completed task #${task_id}: "${task.name}" (${commit_hash})`);
-        result = { content: [{ type: "text", text: `Task #${task_id} marked done (${commit_hash}).` }] };
-        break;
-      }
 
-      case "register_agent": {
-        const { agent_id, agent_type } = args;
-        state.agents[agent_id] = { type: agent_type, connectedAt: new Date().toISOString() };
-        addLog(state, agent_id, `Agent registered (${agent_type})`);
-        result = { content: [{ type: "text", text: `Agent ${agent_id} (${agent_type}) registered.` }] };
-        break;
-      }
-
-      case "unregister_agent": {
-        const { agent_id } = args;
-        if (!state.agents[agent_id]) {
-          throw new Error(`Agent ${agent_id} not found`);
+        case "claim_next_task": {
+          const { agent_id } = args;
+          const nextTask = state.tasks.find((t) => t.assignee === null && t.status === "open");
+          if (!nextTask) {
+            result = { content: [{ type: "text", text: "null" }] };
+            break;
+          }
+          nextTask.assignee = agent_id;
+          nextTask.status = "in_progress";
+          addLog(state, agent_id, `Claimed next task #${nextTask.id}: "${nextTask.name}"`);
+          result = { content: [{ type: "text", text: JSON.stringify(nextTask) }] };
+          break;
         }
-        delete state.agents[agent_id];
-        addLog(state, agent_id, `Agent unregistered`);
-        result = { content: [{ type: "text", text: `Agent ${agent_id} unregistered.` }] };
-        break;
-      }
 
-      case "add_log": {
-        const { agent_id, message } = args;
-        addLog(state, agent_id, message);
-        result = { content: [{ type: "text", text: "Log entry added." }] };
-        break;
-      }
-
-      case "update_repo": {
-        const { url, commit_sha } = args;
-        if (url !== undefined) state.repo.url = url;
-        if (commit_sha !== undefined) state.repo.currentSha = commit_sha;
-        addLog(state, "system", `Repo updated (url=${url || "unchanged"}, sha=${commit_sha || "unchanged"})`);
-        result = { content: [{ type: "text", text: "Repository info updated." }] };
-        break;
-      }
-
-      case "generate_slides": {
-        const { template_style } = args;
-        state.slides = {
-          status: "generating...",
-          template_style: template_style || "default",
-          instructions: "Use Slidev (slidev.io) or Marp (marp.app) to generate slides. Create a markdown slides file and render to PDF/HTML.",
-          generatedAt: new Date().toISOString(),
-        };
-        addLog(state, "system", `Slides generation started (style: ${template_style || "default"})`);
-        result = {
-          content: [{
-            type: "text",
-            text: JSON.stringify(state.slides, null, 2),
-          }],
-        };
-        break;
-      }
-
-      case "render_video": {
-        const { style, duration_seconds } = args;
-        state.video = {
-          status: "queued",
-          style: style || "default",
-          duration_seconds: duration_seconds || 60,
-          instructions: "Use a screen recording tool or a video generation library. Consider ffmpeg for assembly.",
-          generatedAt: new Date().toISOString(),
-        };
-        addLog(state, "system", `Video render queued (style: ${style || "default"}, ${duration_seconds || 60}s)`);
-        result = {
-          content: [{
-            type: "text",
-            text: JSON.stringify(state.video, null, 2),
-          }],
-        };
-        break;
-      }
-
-      case "draft_devpost": {
-        const draft = {
-          title: "HackEasy Project",
-          tagline: "AI-powered hackathon automation",
-          summary: "Built with HackEasy — the AI platform that helps you win hackathons.",
-          link: state.repo.url || "https://github.com/",
-          submittedAt: null,
-        };
-        state.devpost = draft;
-        addLog(state, "system", "Devpost draft generated");
-        result = {
-          content: [{
-            type: "text",
-            text: JSON.stringify(draft, null, 2),
-          }],
-        };
-        break;
-      }
-
-      case "run_judge_simulator": {
-        const { rubric } = state;
-        const scores = {};
-        let total = 0;
-        for (const [criterion, weight] of Object.entries(rubric)) {
-          const score = Math.round((Math.random() * 3 + 7) * 10) / 10;
-          scores[criterion] = { score, weight, weighted: +(score * weight).toFixed(2) };
-          total += scores[criterion].weighted;
+        case "mark_task_done": {
+          const { task_id, commit_hash } = args;
+          const task = state.tasks.find((t) => t.id === task_id);
+          if (!task) throw new Error(`Task ${task_id} not found`);
+          task.status = "done";
+          task.commitHash = commit_hash;
+          addLog(state, task.assignee || "unknown", `Completed task #${task_id}: "${task.name}" (${commit_hash})`);
+          result = { content: [{ type: "text", text: `Task #${task_id} marked done (${commit_hash}).` }] };
+          break;
         }
-        scores.total = +total.toFixed(2);
-        addLog(state, "system", "Judge simulation run");
-        result = {
-          content: [{
-            type: "text",
-            text: JSON.stringify(scores, null, 2),
-          }],
-        };
-        break;
+
+        case "register_agent": {
+          const { agent_id, agent_type } = args;
+          state.agents[agent_id] = { type: agent_type, connectedAt: new Date().toISOString() };
+          addLog(state, agent_id, `Agent registered (${agent_type})`);
+          result = { content: [{ type: "text", text: `Agent ${agent_id} (${agent_type}) registered.` }] };
+          break;
+        }
+
+        case "unregister_agent": {
+          const { agent_id } = args;
+          if (!state.agents[agent_id]) throw new Error(`Agent ${agent_id} not found`);
+          delete state.agents[agent_id];
+          addLog(state, agent_id, `Agent unregistered`);
+          result = { content: [{ type: "text", text: `Agent ${agent_id} unregistered.` }] };
+          break;
+        }
+
+        case "add_log": {
+          const { agent_id, message } = args;
+          addLog(state, agent_id, message);
+          result = { content: [{ type: "text", text: "Log entry added." }] };
+          break;
+        }
+
+        case "update_repo": {
+          const { url, commit_sha } = args;
+          if (url !== undefined) state.repo.url = url;
+          if (commit_sha !== undefined) state.repo.currentSha = commit_sha;
+          addLog(state, "system", `Repo updated (url=${url || "unchanged"}, sha=${commit_sha || "unchanged"})`);
+          result = { content: [{ type: "text", text: "Repository info updated." }] };
+          break;
+        }
+
+        case "generate_slides": {
+          const { template_style } = args;
+          state.slides = { status: "generating...", template_style: template_style || "default", instructions: "Use Slidev (slidev.io) or Marp (marp.app) to generate slides.", generatedAt: new Date().toISOString() };
+          addLog(state, "system", `Slides generation started (style: ${template_style || "default"})`);
+          result = { content: [{ type: "text", text: JSON.stringify(state.slides, null, 2) }] };
+          break;
+        }
+
+        case "render_video": {
+          const { style, duration_seconds } = args;
+          state.video = { status: "queued", style: style || "default", duration_seconds: duration_seconds || 60, instructions: "Use screen recording or ffmpeg for assembly.", generatedAt: new Date().toISOString() };
+          addLog(state, "system", `Video render queued (style: ${style || "default"}, ${duration_seconds || 60}s)`);
+          result = { content: [{ type: "text", text: JSON.stringify(state.video, null, 2) }] };
+          break;
+        }
+
+        case "draft_devpost": {
+          const draft = { title: "HackEasy Project", tagline: "AI-powered hackathon automation", summary: "Built with HackEasy.", link: state.repo.url || "https://github.com/", submittedAt: null };
+          state.devpost = draft;
+          addLog(state, "system", "Devpost draft generated");
+          result = { content: [{ type: "text", text: JSON.stringify(draft, null, 2) }] };
+          break;
+        }
+
+        case "run_judge_simulator": {
+          const { rubric } = state;
+          const scores = {};
+          let total = 0;
+          for (const [criterion, weight] of Object.entries(rubric)) {
+            const score = Math.round((Math.random() * 3 + 7) * 10) / 10;
+            scores[criterion] = { score, weight, weighted: +(score * weight).toFixed(2) };
+            total += scores[criterion].weighted;
+          }
+          scores.total = +total.toFixed(2);
+          addLog(state, "system", "Judge simulation run");
+          result = { content: [{ type: "text", text: JSON.stringify(scores, null, 2) }] };
+          break;
+        }
+
+        default:
+          throw new Error(`Unknown tool: ${tool}`);
       }
 
-      default:
-        throw new Error(`Unknown tool: ${tool}`);
+      saveState(state);
+      return result;
+    } catch (e) {
+      return { content: [{ type: "text", text: `Error: ${e.message}` }], isError: true };
     }
+  });
 
-    saveState(state);
-    return result;
-  } catch (e) {
-    return {
-      content: [{ type: "text", text: `Error: ${e.message}` }],
-      isError: true,
-    };
-  }
-});
+  return server;
+}
 
 // --- HTTP Server with SSE Transport ---
 
@@ -435,10 +384,11 @@ const httpServer = http.createServer(async (req, res) => {
   if (req.method === "GET" && url.pathname === "/mcp") {
     const transport = new SSEServerTransport("/mcp/message", res);
     transports[transport.sessionId] = transport;
-    res.on("close", () => {
+    transport.onclose = () => {
       delete transports[transport.sessionId];
-    });
-    await mcpServer.connect(transport);
+    };
+    const server = createServer();
+    await server.connect(transport);
     return;
   }
 
