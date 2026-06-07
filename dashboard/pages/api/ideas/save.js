@@ -17,7 +17,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const id = saveIdea(parseInt(session.user.id), idea)
+    const id = await saveIdea(session.user.id, idea)
     return res.status(201).json({ success: true, id })
   } catch (err) {
     console.error('Save idea error:', err)

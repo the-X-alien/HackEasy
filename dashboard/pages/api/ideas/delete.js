@@ -17,7 +17,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    removeIdea(parseInt(session.user.id), parseInt(id))
+    await removeIdea(session.user.id, id)
     return res.json({ success: true })
   } catch (err) {
     console.error('Delete idea error:', err)

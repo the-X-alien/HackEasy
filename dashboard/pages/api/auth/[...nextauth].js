@@ -16,7 +16,7 @@ export default NextAuth({
           return null
         }
 
-        const user = getUserByEmail(credentials.email)
+        const user = await getUserByEmail(credentials.email)
         if (!user) {
           return null
         }
@@ -27,7 +27,7 @@ export default NextAuth({
         }
 
         return {
-          id: user.id.toString(),
+          id: user.id,
           email: user.email,
           name: user.name || user.email.split('@')[0]
         }
@@ -55,5 +55,5 @@ export default NextAuth({
   session: {
     strategy: 'jwt'
   },
-  secret: process.env.NEXTAUTH_SECRET || 'hackeasy-secret-key-change-in-production'
+  secret: process.env.NEXTAUTH_SECRET
 })

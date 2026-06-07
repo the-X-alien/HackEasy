@@ -1,94 +1,97 @@
-import Database from 'better-sqlite3'
-import path from 'path'
+import { createClient } from '@supabase/supabase-js'
 
-const dbPath = path.join(process.cwd(), 'hackeasy.db')
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-const db = new Database(dbPath)
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    email TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
-    name TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
+export async function createUser(email, passwordHash) {
+  const { data, error } = await supabase
+    .from('users')
+    .insert({ email, password_hash: passwordHash })
+    .select()
+    .single()
 
-  CREATE TABLE IF NOT EXISTS saved_ideas (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    title TEXT NOT NULL,
-    description TEXT,
-    wis_score INTEGER,
-    pain_score INTEGER,
-    novelty_score INTEGER,
-    feasibility_score INTEGER,
-    alignment_score INTEGER,
-    category TEXT,
-    track TEXT DEFAULT 'software',
-    judging TEXT DEFAULT 'judge-judged',
-    saved_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-  );
-`)
-
-export function createUser(email, passwordHash) {
-  const stmt = db.prepare('INSERT INTO users (email, password_hash) VALUES (?, ?)')
-  try {
-    const result = stmt.run(email, passwordHash)
-    return { id: result.lastInsertRowid, email }
-  } catch (err) {
-    if (err.message.includes('UNIQUE')) {
+  if (error) {
+    if (error.message.includes('duplicate') || error.message.includes('unique')) {
       throw new Error('Email already exists')
     }
-    throw err
+    throw error
   }
+  return { id: data.id, email: data.email }
 }
 
-export function getUserByEmail(email) {
-  const stmt = db.prepare('SELECT * FROM users WHERE email = ?')
-  return stmt.get(email)
+export async function getUserByEmail(email) {
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('email', email)
+    .single()
+
+  if (error) return null
+  return data
 }
 
-export function getUserById(id) {
-  const stmt = db.prepare('SELECT id, email, name, created_at FROM users WHERE id = ?')
-  return stmt.get(id)
+export async function getUserById(id) {
+  const { data, error } = await supabase
+    .from('users')
+    .select('id, email, name, created_at')
+    .eq('id', id)
+    .single()
+
+  if (error) return null
+  return data
 }
 
-export function getSavedIdeas(userId) {
-  const stmt = db.prepare('SELECT * FROM saved_ideas WHERE user_id = ? ORDER BY saved_at DESC')
-  return stmt.all(userId)
+export async function getSavedIdeas(userId) {
+  const { data, error } = await supabase
+    .from('saved_ideas')
+    .select('*')
+    .eq('user_id', userId)
+    .order('saved_at', { ascending: false })
+
+  if (error) return []
+  return data || []
 }
 
-export function saveIdea(userId, idea) {
-  const stmt = db.prepare(`
-    INSERT INTO saved_ideas (user_id, title, description, wis_score, pain_score, novelty_score, feasibility_score, alignment_score, category, track, judging)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `)
-  const result = stmt.run(
-    userId,
-    idea.title,
-    idea.description,
-    idea.wis_score || idea.wis || null,
-    idea.pain_score || idea.pain || null,
-    idea.novelty_score || idea.novelty || null,
-    idea.feasibility_score || idea.feasibility || null,
-    idea.alignment_score || idea.alignment || null,
-    idea.category || '',
-    idea.track || 'software',
-    idea.judging || 'judge-judged'
-  )
-  return result.lastInsertRowid
+export async function saveIdea(userId, idea) {
+  const { data, error } = await supabase
+    .from('saved_ideas')
+    .insert({
+      user_id: userId,
+      title: idea.title,
+      description: idea.description,
+      wis_score: idea.wis_score || idea.wis || null,
+      pain_score: idea.pain_score || idea.pain || null,
+      novelty_score: idea.novelty_score || idea.novelty || null,
+      feasibility_score: idea.feasibility_score || idea.feasibility || null,
+      alignment_score: idea.alignment_score || idea.alignment || null,
+      category: idea.category || '',
+      track: idea.track || 'software',
+      judging: idea.judging || 'judge-judged'
+    })
+    .select()
+    .single()
+
+  if (error) throw error
+  return data.id
 }
 
-export function removeIdea(userId, ideaId) {
-  const stmt = db.prepare('DELETE FROM saved_ideas WHERE id = ? AND user_id = ?')
-  return stmt.run(ideaId, userId)
+export async function removeIdea(userId, ideaId) {
+  const { error } = await supabase
+    .from('saved_ideas')
+    .delete()
+    .eq('id', ideaId)
+    .eq('user_id', userId)
+
+  if (error) throw error
 }
 
-export function clearAllIdeas(userId) {
-  const stmt = db.prepare('DELETE FROM saved_ideas WHERE user_id = ?')
-  return stmt.run(userId)
-}
+export async function clearAllIdeas(userId) {
+  const { error } = await supabase
+    .from('saved_ideas')
+    .delete()
+    .eq('user_id', userId)
 
-export default db
+  if (error) throw error
+}

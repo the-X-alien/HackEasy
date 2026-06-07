@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs'
-import { createUser, getUserByEmail } from '../../../lib/db'
+import { createUser } from '../../../lib/db'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -22,16 +22,13 @@ export default async function handler(req, res) {
   }
 
   try {
-    const existing = getUserByEmail(email)
-    if (existing) {
-      return res.status(400).json({ error: 'Email already registered' })
-    }
-
     const passwordHash = await bcrypt.hash(password, 12)
-    const user = createUser(email, passwordHash)
-
+    const user = await createUser(email, passwordHash)
     return res.status(201).json({ message: 'Account created successfully', userId: user.id })
   } catch (err) {
+    if (err.message === 'Email already exists') {
+      return res.status(400).json({ error: 'Email already registered' })
+    }
     console.error('Signup error:', err)
     return res.status(500).json({ error: 'Failed to create account' })
   }
