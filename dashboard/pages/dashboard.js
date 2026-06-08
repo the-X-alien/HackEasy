@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react'
-import { useSession, signIn, signOut } from 'next-auth/react'
-import { useRouter } from 'next/router'
 import Head from 'next/head'
 import toast from 'react-hot-toast'
 
@@ -70,7 +68,7 @@ function ScoreBar({ label, score, color }) {
   )
 }
 
-function NavBar({ onOpenSettings, session, onSignOut }) {
+function NavBar({ onOpenSettings }) {
   return (
     <nav className="fixed top-0 left-0 right-0 z-40 bg-[rgb(15,23,42)]/80 backdrop-blur-xl border-b border-gray-800">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -82,9 +80,6 @@ function NavBar({ onOpenSettings, session, onSignOut }) {
           <span className="hidden sm:inline text-sm text-gray-500 ml-2">/ Idea Generator</span>
         </div>
         <div className="flex items-center gap-3">
-          {session && (
-            <span className="text-xs text-gray-400">{session.user?.email}</span>
-          )}
           <button onClick={onOpenSettings} className="btn-outline text-xs px-3 py-2 flex items-center gap-1.5">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -92,16 +87,6 @@ function NavBar({ onOpenSettings, session, onSignOut }) {
             </svg>
             Settings
           </button>
-          {session ? (
-            <button onClick={onSignOut} className="btn-outline text-xs px-3 py-2 text-red-400 border-red-400/30 hover:bg-red-500/10 flex items-center gap-1.5">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              Sign Out
-            </button>
-          ) : (
-            <a href="/auth/signin" className="btn-primary text-xs px-4 py-2">Sign In</a>
-          )}
           <a href="/" className="text-sm text-gray-400 hover:text-white transition-colors flex items-center gap-1.5">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -651,8 +636,6 @@ function SettingsModal({ onClose, selectedModel, onModelChange, apiKey, onApiKey
 }
 
 export default function IdeaGenerator() {
-  const { data: session, status } = useSession()
-  const router = useRouter()
   const [activeTab, setActiveTab] = useState('categories')
   const [rubric, setRubric] = useState('')
   const [rubricSaved, setRubricSaved] = useState(false)
@@ -668,12 +651,10 @@ export default function IdeaGenerator() {
   const [settingsKey, setSettingsKey] = useState(0)
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/auth/signin')
+    const saved = localStorage.getItem('hackeasy-saved-ideas')
+    if (saved) {
+      try { setSavedIdeas(JSON.parse(saved)) } catch {}
     }
-  }, [status, router])
-
-  useEffect(() => {
     const model = localStorage.getItem('hackeasy-model')
     if (model) setSelectedModel(model)
     const key = localStorage.getItem('hackeasy-api-key')
@@ -681,18 +662,8 @@ export default function IdeaGenerator() {
   }, [])
 
   useEffect(() => {
-    if (session?.user) {
-      fetch('/api/ideas/saved')
-        .then(res => res.ok ? res.json() : { ideas: [] })
-        .then(data => setSavedIdeas(data.ideas || []))
-        .catch(() => setSavedIdeas([]))
-    } else {
-      const saved = localStorage.getItem('hackeasy-saved-ideas')
-      if (saved) {
-        try { setSavedIdeas(JSON.parse(saved)) } catch {}
-      }
-    }
-  }, [session])
+    localStorage.setItem('hackeasy-saved-ideas', JSON.stringify(savedIdeas))
+  }, [savedIdeas])
 
   useEffect(() => {
     localStorage.setItem('hackeasy-model', selectedModel)
@@ -783,63 +754,27 @@ export default function IdeaGenerator() {
     setLoading(prev => ({ ...prev, ['all']: false }))
   }
 
-  const saveIdea = async (idea) => {
-    const exists = savedIdeas.some(s => s.title === idea.title)
-    if (exists) {
-      const saved = savedIdeas.find(s => s.title === idea.title)
-      if (session?.user) {
-        await fetch('/api/ideas/delete', {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id: saved.id })
-        })
-      }
+  const saveIdea = (idea) => {
+    if (savedIdeas.some(s => s.title === idea.title)) {
       setSavedIdeas(prev => prev.filter(s => s.title !== idea.title))
       toast('Idea removed from saved')
       return
     }
-
-    const ideaWithMeta = {
+    const saved = {
       ...idea,
       category: idea.category || '',
       savedAt: new Date().toLocaleDateString(),
     }
-
-    if (session?.user) {
-      try {
-        const res = await fetch('/api/ideas/save', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ idea: ideaWithMeta })
-        })
-        const data = await res.json()
-        if (res.ok) {
-          ideaWithMeta.id = data.id
-        }
-      } catch {}
-    }
-
-    setSavedIdeas(prev => [ideaWithMeta, ...prev])
+    setSavedIdeas(prev => [saved, ...prev])
     toast.success('Idea saved!')
   }
 
-  const removeIdea = async (indexOrId) => {
-    const idea = savedIdeas[indexOrId]
-    if (session?.user && idea?.id) {
-      await fetch('/api/ideas/delete', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: idea.id })
-      })
-    }
-    setSavedIdeas(prev => prev.filter((_, i) => i !== indexOrId))
+  const removeIdea = (index) => {
+    setSavedIdeas(prev => prev.filter((_, i) => i !== index))
     toast('Idea removed')
   }
 
-  const clearAllIdeas = async () => {
-    if (session?.user) {
-      await fetch('/api/ideas/saved', { method: 'DELETE' }).catch(() => {})
-    }
+  const clearAllIdeas = () => {
     setSavedIdeas([])
     toast('All saved ideas cleared')
   }
@@ -861,11 +796,7 @@ export default function IdeaGenerator() {
         <title>Idea Generator - HackEasy</title>
       </Head>
       <div className="grid-bg min-h-screen">
-        <NavBar
-          onOpenSettings={() => setShowSettings(true)}
-          session={session}
-          onSignOut={() => signOut({ callbackUrl: '/' })}
-        />
+        <NavBar onOpenSettings={() => setShowSettings(true)} />
 
         <main className="max-w-6xl mx-auto px-4 pt-24 pb-16">
           <div className="mb-6" style={{ animation: 'fadeInUp 0.5s ease-out' }}>

@@ -1,10 +1,9 @@
 import '../styles/globals.css'
-import { SessionProvider } from 'next-auth/react'
 import { Toaster } from 'react-hot-toast'
 
-export default function App({ Component, pageProps, session }) {
+export default function App({ Component, pageProps }) {
   return (
-    <SessionProvider session={session}>
+    <>
       <Component {...pageProps} />
       <Toaster position="top-right" toastOptions={{
         duration: 4000,
@@ -15,6 +14,6 @@ export default function App({ Component, pageProps, session }) {
           borderRadius: '12px',
         },
       }} />
-    </SessionProvider>
+    </>
   )
 }
